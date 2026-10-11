@@ -16,12 +16,12 @@ type PromptSuggestionsProps = {
 
 export function PromptSuggestions({ onSelectPrompt }: PromptSuggestionsProps) {
   return (
-    <div className="prompt-suggestions" aria-label="Prompt ideas">
+    <div className="mt-[28px] flex flex-wrap justify-center gap-[10px] max-[600px]:mt-[22px] max-[600px]:gap-[8px]" aria-label="Prompt ideas">
       {suggestions.map(({ label, icon: Icon, prompt }) => (
         <Button
           key={label}
           variant="outline"
-          className="suggestion-button"
+          className="h-[38px] rounded-[12px] bg-transparent px-[14px] text-[12px] font-[450] text-foreground hover:border-accent-border hover:bg-accent-soft hover:text-strong dark:bg-transparent dark:hover:bg-accent-soft"
           onClick={() => onSelectPrompt(prompt)}
         >
           <Icon size={16} aria-hidden="true" />{label}

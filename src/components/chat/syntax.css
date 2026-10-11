@@ -1,0 +1,27 @@
+/* Highlight.js generates these classes at runtime. Layout and Markdown elements
+   use Tailwind utilities; syntax colors follow the tokens in src/index.css. */
+@layer components {
+  .syntax-highlight :is(.hljs-comment, .hljs-quote) {
+    color: var(--syntax-comment);
+    font-style: italic;
+  }
+
+  .syntax-highlight :is(.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-meta) {
+    color: var(--syntax-keyword);
+  }
+
+  .syntax-highlight :is(.hljs-string, .hljs-regexp, .hljs-addition) {
+    color: var(--syntax-string);
+  }
+
+  .syntax-highlight :is(.hljs-number, .hljs-attr, .hljs-attribute, .hljs-variable, .hljs-deletion) {
+    color: var(--syntax-number);
+  }
+
+  .syntax-highlight :is(.hljs-title, .hljs-built_in, .hljs-type, .hljs-tag, .hljs-name, .hljs-section) {
+    color: var(--syntax-function);
+  }
+
+  .syntax-highlight .hljs-emphasis { font-style: italic; }
+  .syntax-highlight .hljs-strong { font-weight: 650; }
+}
