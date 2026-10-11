@@ -1,15 +1,7 @@
-/*
- * Browser-side HTTP client: App.tsx calls sendMessage(), which sends JSON to
- * Hono and returns the reply text. AI SDKs and API keys belong on the server.
- */
-
-// This describes the expected response shape at compile time. The runtime
-// checks below still matter because a server can return unexpected data.
 type ChatResponse = {
   text: string;
 };
 
-// Small helper that extracts text from an already validated response.
 function retrieveAnswer(response: ChatResponse): string {
   return response.text;
 }
@@ -20,8 +12,6 @@ async function sendMessage(
   signal?: AbortSignal,
   onChunk?: (text: string) => void,
 ): Promise<string> {
-  // In development Vite proxies this relative URL to Hono on port 3000.
-  // signal allows App.tsx to cancel the request when starting a new chat.
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -29,7 +19,6 @@ async function sendMessage(
     signal,
   });
 
-  // fetch does not throw for HTTP 400/500 responses, so check their status.
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
     if (
@@ -88,7 +77,6 @@ async function sendMessage(
     }
   }
 
-  // Treat external JSON as unknown, then check its shape before using it.
   const body: unknown = await response.json();
   if (
     typeof body !== "object" || body === null ||

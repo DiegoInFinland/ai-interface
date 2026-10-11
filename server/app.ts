@@ -1,9 +1,3 @@
-/*
- * Hono route definitions. server/index.ts starts the listener for this app.
- * The chat route calls Gemini or returns a placeholder for other providers.
- * Keeping the app separate from the listener lets checks use app.request().
- */
-
 import { Hono } from "hono";
 import { ApiError } from "@google/genai";
 import { stream } from "hono/streaming";
@@ -17,14 +11,11 @@ function geminiError(error: unknown): string {
 
 const app = new Hono();
 
-// A simple connectivity check. `c` is Hono's request/response context.
 app.get("/api/health", (c) => {
   return c.text("ok");
 });
 
-// Called by src/lib/chat-api.ts with JSON shaped as { prompt, provider }.
 app.post("/api/chat", async (c) => {
-  // JSON parsing can fail before field validation (for example, a broken body).
   let body: unknown;
   try {
     body = await c.req.json();
@@ -32,8 +23,6 @@ app.post("/api/chat", async (c) => {
     return c.json({ error: "Request body must be valid JSON." }, 400);
   }
 
-  // Validate at the server boundary: frontend types cannot guarantee what an
-  // HTTP client sends. These checks also narrow `body` for TypeScript.
   if (
     typeof body !== "object" || body === null ||
     !("prompt" in body) || typeof body.prompt !== "string" || !body.prompt.trim() ||
@@ -89,7 +78,6 @@ app.post("/api/chat", async (c) => {
     }
   }
 
-  // Return the { text: string } contract for the placeholder providers.
   return c.json({
     text: `This is a dummy reply from the Hono API. You selected ${body.provider} and asked:\n\n${body.prompt.trim()}\n\nThe chat workflow is working. No AI provider was called.`,
   });

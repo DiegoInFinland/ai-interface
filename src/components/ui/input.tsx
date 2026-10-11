@@ -1,5 +1,3 @@
-// Styled single-line input. React.ComponentProps keeps native input options
-// (value, onChange, disabled, etc.); ...props forwards them to the real element.
 import * as React from "react"
 import { cn } from "cn"
 

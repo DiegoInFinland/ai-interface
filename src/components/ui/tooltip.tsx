@@ -1,5 +1,3 @@
-// Composable hover/focus hints backed by Radix. Provider configures timing,
-// Tooltip owns open state, Trigger is the target, and Content is the hint.
 import * as React from "react"
 import { cn } from "cn"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
@@ -29,8 +27,6 @@ function TooltipTrigger({
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
 }
 
-// A portal renders the popup outside its trigger's DOM container so parent
-// overflow rules do not clip it. Radix handles positioning relative to the trigger.
 function TooltipContent({
   className,
   sideOffset = 0,

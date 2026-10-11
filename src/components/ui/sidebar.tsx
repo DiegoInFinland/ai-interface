@@ -1,11 +1,5 @@
 "use client"
 
-/*
- * Optional shadcn navigation system, not currently rendered by the chat page.
- * SidebarProvider shares desktop/mobile open state through React context.
- * Sidebar chooses a desktop panel or mobile Sheet; the smaller exported parts
- * let a page compose its own navigation groups, actions, badges and submenus.
- */
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
@@ -49,7 +43,6 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
 
-// Read shared sidebar state. Consumers must be inside SidebarProvider.
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
@@ -59,8 +52,6 @@ function useSidebar() {
   return context
 }
 
-// Supports controlled state (open/onOpenChange) or its own defaultOpen state.
-// Desktop collapse and mobile drawer visibility are tracked separately.
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -77,8 +68,6 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen)
   const open = openProp ?? _open
   const setOpen = React.useCallback(
@@ -90,18 +79,15 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
-      // This sets the cookie to keep the sidebar state.
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
     [setOpenProp, open]
   )
 
-  // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
-  // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -117,8 +103,6 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
 
-  // We add a state so that we can do data-state="expanded" or "collapsed".
-  // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"
 
   const contextValue = React.useMemo<SidebarContextProps>(
@@ -187,7 +171,6 @@ function Sidebar({
     )
   }
 
-  // On mobile the sidebar overlays content as a dialog rather than taking width.
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
@@ -223,7 +206,6 @@ function Sidebar({
       data-side={side}
       data-slot="sidebar"
     >
-      {/* This is what handles the sidebar gap on desktop */}
       <div
         data-slot="sidebar-gap"
         className={cn(
@@ -240,7 +222,6 @@ function Sidebar({
         data-side={side}
         className={cn(
           "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
-          // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
@@ -260,7 +241,6 @@ function Sidebar({
   )
 }
 
-// Accessible button that delegates toggling to the provider's shared action.
 function SidebarTrigger({
   className,
   onClick,
@@ -312,7 +292,6 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-// Main-page container whose spacing adapts to an adjacent inset-style sidebar.
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
@@ -340,8 +319,6 @@ function SidebarInput({
   )
 }
 
-// Structural parts: header/footer stay separate from the scrollable content;
-// groups divide that content into labelled navigation sections.
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -457,8 +434,6 @@ function SidebarGroupContent({
   )
 }
 
-// Navigation entries use a semantic list. Buttons supply active styles and can
-// use asChild to apply those styles to a link supplied by the caller.
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -503,7 +478,6 @@ const sidebarMenuButtonVariants = cva(
   }
 )
 
-// Optional tooltip labels an icon-only entry when the desktop sidebar collapses.
 function SidebarMenuButton({
   asChild = false,
   isActive = false,
@@ -597,7 +571,6 @@ function SidebarMenuBadge({
   )
 }
 
-// Placeholder while menu data loads; width is picked once for each mounted item.
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -605,7 +578,6 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
   const [width] = React.useState(() => {
     return `${Math.floor(Math.random() * 40) + 50}%`
   })
@@ -636,7 +608,6 @@ function SidebarMenuSkeleton({
   )
 }
 
-// Nested navigation lists are hidden when the sidebar is in icon-only mode.
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul

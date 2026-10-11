@@ -1,5 +1,3 @@
-// Slide-in panel built on Radix Dialog, used by the mobile sidebar. Radix handles
-// dialog focus/open state; these wrappers add styling and optional close controls.
 import * as React from "react"
 import { cn } from "cn"
 import { Dialog as SheetPrimitive } from "radix-ui"
@@ -29,7 +27,6 @@ function SheetPortal({
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
-// Backdrop behind the panel, rendered above the page with a fixed position.
 function SheetOverlay({
   className,
   ...props
@@ -46,8 +43,6 @@ function SheetOverlay({
   )
 }
 
-// Render the panel in a portal outside the normal page layout. `side` selects
-// its screen edge, and showCloseButton controls the built-in close action.
 function SheetContent({
   className,
   children,
@@ -109,8 +104,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-// Dialog title/description provide accessible names for the panel, in addition
-// to visible text. Keep them present even when visually hidden by a caller.
+// Keep accessible dialog names present, even when visually hidden.
 function SheetTitle({
   className,
   ...props

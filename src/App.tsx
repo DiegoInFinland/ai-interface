@@ -1,9 +1,3 @@
-/*
- * Chat page coordinator. Child components display the UI; this component owns
- * the shared state and handles sending, resetting, and selecting prompt ideas.
- * Flow: MessageComposer -> handleSubmit -> lib/chat-api.ts -> server/app.ts
- *       -> reply added to messages -> Conversation renders the updated list.
- */
 import { useEffect, useRef, useState } from "react";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
@@ -15,34 +9,24 @@ import { sendMessage } from "@/lib/chat-api";
 import { cn } from "@/lib/utils";
 
 function App() {
-  // State changes trigger a render. text is the draft, while messages is the
-  // visible conversation, stored only in memory until the page is refreshed.
   const [text, setText] = useState("");
   const [provider, setProvider] = useState("ChatGPT");
   const [messages, setMessages] = useState<Message[]>([]);
-  // These two states drive loading feedback and the error notice.
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Refs keep values between renders without triggering a render themselves.
-  // inputRef points to the textarea; requestRef tracks the active HTTP request.
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const requestRef = useRef<AbortController | null>(null);
 
-  // Cancel an unfinished request if the page component is removed.
   useEffect(() => () => requestRef.current?.abort(), []);
 
-  // Both clicking Send and pressing Enter call this same function.
   const handleSubmit = async () => {
     const prompt = text.trim();
     // The ref is updated immediately, so rapid clicks cannot send duplicates.
     if (!prompt || requestRef.current) return;
-    // Pass this controller's signal to fetch so New chat can cancel the request.
     const controller = new AbortController();
     requestRef.current = controller;
     setIsSending(true);
     setError(null);
-    // Show the user message immediately, before the server responds. The
-    // updater receives the latest list; UUIDs give React stable, unique keys.
     setMessages((previous) => [
       ...previous,
       {
@@ -58,7 +42,6 @@ function App() {
     const answerId = crypto.randomUUID();
     let receivedText = false;
     try {
-      // Only the current prompt/provider are sent, not the conversation history.
       const answer = await sendMessage(
         prompt,
         provider,
@@ -107,7 +90,6 @@ function App() {
             : "Couldn’t send your message. Please try again.",
       );
       // Restore the failed prompt for retry unless the user typed a new draft.
-      // The previously displayed user message remains in the conversation.
       if (!receivedText) setText((current) => current || prompt);
     } finally {
       // An older request finishing must not clear a newer request's loading state.
@@ -126,7 +108,6 @@ function App() {
   };
 
   const startNewChat = () => {
-    // Clear the request ref as well as cancelling fetch, allowing a new send.
     requestRef.current?.abort();
     requestRef.current = null;
     setIsSending(false);
@@ -137,22 +118,27 @@ function App() {
   };
 
   const selectPrompt = (prompt: string) => {
-    // Suggestions populate the draft and focus the textarea; they do not send.
     setText(prompt);
     inputRef.current?.focus();
   };
 
   return (
-    <div className="flex min-h-svh flex-col text-[14px] leading-normal motion-reduce:[&_*]:transition-none motion-reduce:[&_*::before]:transition-none motion-reduce:[&_*::after]:transition-none">
+    <div
+      className={cn(
+        "flex flex-col text-[14px] leading-normal [&>header]:shrink-0 motion-reduce:[&_*]:transition-none motion-reduce:[&_*::before]:transition-none motion-reduce:[&_*::after]:transition-none",
+        messages.length ? "h-dvh overflow-hidden" : "min-h-svh",
+      )}
+    >
       <ChatHeader onNewChat={startNewChat} />
 
-      <main className={cn(
-        "mx-auto w-full max-w-[780px] px-[24px] max-[600px]:px-[20px]",
-        messages.length
-          ? "mt-[24px] mb-auto pt-0 pb-[32px] max-[600px]:mt-[12px] max-[600px]:pb-[64px]"
-          : "my-auto pt-[64px] pb-[100px] max-[600px]:pt-[40px] max-[600px]:pb-[64px]",
-      )}>
-        {/* The empty state becomes a conversation after the first message. */}
+      <main
+        className={cn(
+          "mx-auto w-full max-w-[980px] px-[24px] max-[600px]:px-[20px]",
+          messages.length
+            ? "mt-[24px] flex min-h-0 flex-1 flex-col pt-0 pb-[20px] max-[700px]:mt-[12px] max-[700px]:pb-[16px]"
+            : "my-auto pt-[64px] pb-[100px] max-[700px]:pt-[40px] max-[700px]:pb-[64px]",
+        )}
+      >
         {messages.length === 0 ? (
           <ChatWelcome />
         ) : (
@@ -160,12 +146,14 @@ function App() {
         )}
 
         {error && (
-          <p className="mb-[16px] rounded-[12px] border border-destructive px-[16px] py-[12px] text-[13px] text-destructive" role="alert">
+          <p
+            className="mb-[16px] shrink-0 rounded-[12px] border border-destructive px-[16px] py-[12px] text-[13px] text-destructive"
+            role="alert"
+          >
             {error}
           </p>
         )}
 
-        {/* Controlled values flow down as props; callbacks send changes up. */}
         <MessageComposer
           text={text}
           onTextChange={setText}

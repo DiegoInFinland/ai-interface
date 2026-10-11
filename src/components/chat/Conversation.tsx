@@ -1,11 +1,8 @@
-// Displays the in-memory message list supplied by App.tsx; it makes no API calls.
 import { Sparkles } from "lucide-react";
 import { lazy, Suspense } from "react";
 
 const MarkdownMessage = lazy(() => import("./MarkdownMessage"));
 
-// UI message shape: role controls the label/layout, and id is React's list key.
-// provider records the selection at send time, even if the picker changes later.
 export type Message = {
   id: string;
   text: string;
@@ -19,7 +16,6 @@ type ConversationProps = {
 };
 
 export function Conversation({ messages, isSending }: ConversationProps) {
-  // aria-live announces new content without interrupting the screen reader.
   return (
     <section
       className="grid gap-[36px]"
@@ -28,7 +24,6 @@ export function Conversation({ messages, isSending }: ConversationProps) {
     >
       {messages.map((message) => (
         <article className="min-w-0" key={message.id}>
-          {/* User messages appear as bubbles; assistant replies are left aligned. */}
           <div
             className={
               message.role === "user"

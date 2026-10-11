@@ -1,5 +1,3 @@
-// Animated loading placeholder. Callers choose its dimensions via className;
-// it represents unfinished content, rather than fetching that content itself.
 import { cn } from "cn"
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {

@@ -7,7 +7,6 @@ import "./syntax.css";
 const headingClasses = "mt-[24px] mb-[10px] leading-[1.3] font-[650] text-strong";
 const focusClasses = "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent";
 
-// Styling stays alongside the generated elements instead of a page stylesheet.
 const components: Components = {
   h1: ({ children }) => <h1 className={`${headingClasses} text-[1.6em]`}>{children}</h1>,
   h2: ({ children }) => <h2 className={`${headingClasses} text-[1.35em]`}>{children}</h2>,

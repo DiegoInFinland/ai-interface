@@ -1,7 +1,3 @@
-/*
- * Server-side Gemini integration, called by the Gemini branch of /api/chat.
- * This sendMessage is separate from the browser helper in src/lib/chat-api.ts.
- */
 import { GoogleGenAI } from "@google/genai";
 
 function createClient() {

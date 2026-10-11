@@ -1,5 +1,4 @@
-/* Highlight.js generates these classes at runtime. Layout and Markdown elements
-   use Tailwind utilities; syntax colors follow the tokens in src/index.css. */
+/* Highlight.js generates these classes at runtime, outside Tailwind's scanning. */
 @layer components {
   .syntax-highlight :is(.hljs-comment, .hljs-quote) {
     color: var(--syntax-comment);

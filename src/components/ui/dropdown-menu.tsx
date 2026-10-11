@@ -1,7 +1,5 @@
 "use client"
 
-// Composable Radix menu. Root tracks open state, Trigger opens it, and Content
-// contains keyboard-navigable items. Wrappers add shadcn styles, not app actions.
 import * as React from "react"
 import { cn } from "cn"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
@@ -32,8 +30,6 @@ function DropdownMenuTrigger({
   )
 }
 
-// The portal places the popup outside parent containers that could clip it.
-// Alignment and sideOffset position it relative to the trigger.
 function DropdownMenuContent({
   className,
   align = "start",
@@ -61,8 +57,6 @@ function DropdownMenuGroup({
   )
 }
 
-// A regular action item; variant="destructive" changes its styling.
-// Application code supplies the selection handler through the forwarded props.
 function DropdownMenuItem({
   className,
   inset,
@@ -86,7 +80,6 @@ function DropdownMenuItem({
   )
 }
 
-// Checkbox items represent independent toggles; Radix manages their indicators.
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -121,7 +114,6 @@ function DropdownMenuCheckboxItem({
   )
 }
 
-// Radio groups allow a single selected value among their radio items.
 function DropdownMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
@@ -215,7 +207,6 @@ function DropdownMenuShortcut({
   )
 }
 
-// Nested menus have their own trigger/content pair and open state.
 function DropdownMenuSub({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {

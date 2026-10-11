@@ -1,6 +1,3 @@
-// Composable shadcn card layout: Card wraps Header, Title/Description/Action,
-// Content and Footer as needed. These are styled containers with no data logic.
-// data-slot identifies each part; data-size lets child styles adapt to small cards.
 import * as React from "react"
 import { cn } from "cn"
 
@@ -22,7 +19,6 @@ function Card({
   )
 }
 
-// A grid allows a title/description on the left and an optional action on the right.
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -72,7 +68,6 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-// Main content inherits horizontal spacing from the enclosing card's CSS variable.
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

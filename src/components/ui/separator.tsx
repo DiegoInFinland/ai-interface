@@ -1,9 +1,5 @@
 "use client"
 
-// Styled Radix divider. The default horizontal, decorative separator is visual;
-// use decorative=false when it should be announced as a semantic separator.
-// "use client" is a shadcn directive for server-component frameworks; Vite
-// already renders this frontend in the browser.
 import * as React from "react"
 import { cn } from "cn"
 import { Separator as SeparatorPrimitive } from "radix-ui"

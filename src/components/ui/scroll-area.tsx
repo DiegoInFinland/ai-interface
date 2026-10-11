@@ -1,5 +1,3 @@
-// Radix scroll container with a styled scrollbar. Root controls the container,
-// Viewport holds scrollable children, and ScrollBar renders the draggable thumb.
 import * as React from "react"
 import { cn } from "cn"
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui"
@@ -27,7 +25,6 @@ function ScrollArea({
   )
 }
 
-// Vertical by default; orientation="horizontal" switches the track's layout.
 function ScrollBar({
   className,
   orientation = "vertical",
