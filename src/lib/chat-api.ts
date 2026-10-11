@@ -1,6 +1,43 @@
+export type GroundingData = {
+  sources: { uri: string; title: string }[];
+  searchEntryPoint?: string;
+};
+
 type ChatResponse = {
   text: string;
+  grounding?: GroundingData;
 };
+
+function parseGrounding(value: unknown): GroundingData {
+  if (typeof value !== "object" || value === null || !("sources" in value) || !Array.isArray(value.sources)) {
+    throw new Error("The chat API returned invalid grounding metadata.");
+  }
+  const sources = value.sources.map((source: unknown) => {
+    if (typeof source !== "object" || source === null ||
+      !("uri" in source) || typeof source.uri !== "string" ||
+      !("title" in source) || typeof source.title !== "string") {
+      throw new Error("The chat API returned an invalid source.");
+    }
+    let url: URL;
+    try {
+      url = new URL(source.uri);
+    } catch {
+      throw new Error("The chat API returned an invalid source URL.");
+    }
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      throw new Error("The chat API returned an invalid source URL.");
+    }
+    return { uri: source.uri, title: source.title };
+  });
+  if ("searchEntryPoint" in value && typeof value.searchEntryPoint !== "string") {
+    throw new Error("The chat API returned invalid search suggestions.");
+  }
+  return {
+    sources,
+    ...("searchEntryPoint" in value && typeof value.searchEntryPoint === "string"
+      ? { searchEntryPoint: value.searchEntryPoint } : {}),
+  };
+}
 
 function retrieveAnswer(response: ChatResponse): string {
   return response.text;
@@ -11,11 +48,12 @@ async function sendMessage(
   provider: string,
   signal?: AbortSignal,
   onChunk?: (text: string) => void,
+  options?: { googleSearch?: boolean; onGrounding?: (grounding: GroundingData) => void },
 ): Promise<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, provider, stream: Boolean(onChunk) }),
+    body: JSON.stringify({ prompt, provider, stream: Boolean(onChunk), googleSearch: options?.googleSearch ?? false }),
     signal,
   });
 
@@ -51,6 +89,9 @@ async function sendMessage(
       } else if (event.type === "delta" && "text" in event && typeof event.text === "string") {
         text += event.text;
         onChunk?.(event.text);
+      } else if (event.type === "grounding" && "grounding" in event) {
+        const grounding = parseGrounding(event.grounding);
+        options?.onGrounding?.(grounding);
       } else {
         throw new Error("The chat API returned an invalid stream.");
       }
@@ -85,6 +126,10 @@ async function sendMessage(
     throw new Error("The chat API returned an invalid response. Please try again.");
   }
 
+  if ("grounding" in body) {
+    const grounding = parseGrounding(body.grounding);
+    options?.onGrounding?.(grounding);
+  }
   return retrieveAnswer({ text: body.text });
 }
 

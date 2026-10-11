@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import { ArrowUp, ChevronDown, Sparkles, Square } from "lucide-react";
+import { ArrowUp, ChevronDown, Globe, Sparkles, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -8,6 +8,8 @@ type MessageComposerProps = {
   onTextChange: (text: string) => void;
   provider: string;
   onProviderChange: (provider: string) => void;
+  googleSearch: boolean;
+  onGoogleSearchChange: (enabled: boolean) => void;
   onSend: () => void;
   onStop: () => void;
   inputRef: Ref<HTMLTextAreaElement>;
@@ -19,6 +21,8 @@ export function MessageComposer({
   onTextChange,
   provider,
   onProviderChange,
+  googleSearch,
+  onGoogleSearchChange,
   onSend,
   onStop,
   inputRef,
@@ -145,7 +149,24 @@ export function MessageComposer({
           </Button>
         </div>
       </form>
-      <p className="mt-[12px] text-center text-[11px]" id="composer-hint">
+      <div className="mt-[12px] flex flex-wrap items-center justify-center gap-x-[16px] gap-y-[8px]">
+        {provider === "Gemini" && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={googleSearch
+              ? "h-[28px] rounded-full border-accent-border bg-accent-soft px-[10px] text-[11px] text-strong"
+              : "h-[28px] rounded-full px-[10px] text-[11px] text-foreground"}
+            aria-pressed={googleSearch}
+            disabled={isSending}
+            onClick={() => onGoogleSearchChange(!googleSearch)}
+            title="Let Gemini use Google Search for current information and sources"
+          >
+            <Globe size={13} aria-hidden="true" /> Google Search
+          </Button>
+        )}
+      <p className="text-center text-[11px]" id="composer-hint">
         {isSending ? (
           "Generating a reply · Stop anytime"
         ) : (
@@ -158,6 +179,7 @@ export function MessageComposer({
           </>
         )}
       </p>
+      </div>
     </div>
   );
 }

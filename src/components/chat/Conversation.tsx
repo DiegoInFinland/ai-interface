@@ -1,5 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { lazy, Suspense } from "react";
+import type { GroundingData } from "@/lib/chat-api";
+import { GroundingSources } from "./GroundingSources";
 
 const MarkdownMessage = lazy(() => import("./MarkdownMessage"));
 
@@ -8,6 +10,7 @@ export type Message = {
   text: string;
   provider: string;
   role: "user" | "assistant";
+  grounding?: GroundingData;
 };
 
 type ConversationProps = {
@@ -50,6 +53,9 @@ export function Conversation({ messages, isSending }: ConversationProps) {
               </Suspense>
             ) : (
               <p className="mt-[4px] text-[15px] whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>
+            )}
+            {message.role === "assistant" && message.grounding && (
+              <GroundingSources grounding={message.grounding} />
             )}
           </div>
         </article>

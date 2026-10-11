@@ -4,13 +4,13 @@ import { ChatWelcome } from "@/components/chat/ChatWelcome";
 import type { Message } from "@/components/chat/Conversation";
 import ChatWindow from "@/components/chat/ChatWindow";
 import { MessageComposer } from "@/components/chat/MessageComposer";
-import { PromptSuggestions } from "@/components/chat/PromptSuggestions";
-import { sendMessage } from "@/lib/chat-api";
+import { sendMessage, type GroundingData } from "@/lib/chat-api";
 import { cn } from "@/lib/utils";
 
 function App() {
   const [text, setText] = useState("");
   const [provider, setProvider] = useState("ChatGPT");
+  const [googleSearch, setGoogleSearch] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +41,7 @@ function App() {
 
     const answerId = crypto.randomUUID();
     let receivedText = false;
+    let grounding: GroundingData | undefined;
     try {
       const answer = await sendMessage(
         prompt,
@@ -65,6 +66,22 @@ function App() {
                 ];
           });
         },
+        {
+          googleSearch: provider === "Gemini" && googleSearch,
+          onGrounding: (data) => {
+            if (controller.signal.aborted) return;
+            grounding = data;
+            if (receivedText) {
+              setMessages((previous) =>
+                previous.map((message) =>
+                  message.id === answerId
+                    ? { ...message, grounding: data }
+                    : message,
+                ),
+              );
+            }
+          },
+        },
       );
       // A cancelled request must not append a reply to a newly reset chat.
       if (controller.signal.aborted) return;
@@ -76,6 +93,7 @@ function App() {
             text: answer,
             provider,
             role: "assistant",
+            ...(grounding ? { grounding } : {}),
           },
         ]);
       }
@@ -117,11 +135,6 @@ function App() {
     inputRef.current?.focus();
   };
 
-  const selectPrompt = (prompt: string) => {
-    setText(prompt);
-    inputRef.current?.focus();
-  };
-
   return (
     <div
       className={cn(
@@ -147,7 +160,17 @@ function App() {
 
         {error && (
           <p
-            className="mb-[16px] shrink-0 rounded-[12px] border border-destructive px-[16px] py-[12px] text-[13px] text-destructive"
+            className="
+            mb-[16px] 
+            shrink-0 
+            rounded-[12px] 
+            border 
+            border-destructive 
+            px-[16px] 
+            py-[12px] 
+            text-[13px] 
+            text-destructive
+            "
             role="alert"
           >
             {error}
@@ -159,15 +182,13 @@ function App() {
           onTextChange={setText}
           provider={provider}
           onProviderChange={setProvider}
+          googleSearch={googleSearch}
+          onGoogleSearchChange={setGoogleSearch}
           onSend={handleSubmit}
           onStop={stopGeneration}
           inputRef={inputRef}
           isSending={isSending}
         />
-
-        {messages.length === 0 && (
-          <PromptSuggestions onSelectPrompt={selectPrompt} />
-        )}
       </main>
     </div>
   );

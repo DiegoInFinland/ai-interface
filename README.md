@@ -5,9 +5,10 @@ A React and TypeScript chat app built with Vite, Tailwind CSS, and shadcn/ui, ba
 ## Features
 
 - Gemini replies stream progressively into one assistant message over HTTP.
+- Optional Google Search grounding for Gemini, with source links and Google Search suggestions.
 - A Stop generation button cancels the active request and preserves partial text.
 - New chat cancels an active request and clears the conversation.
-- Prompt suggestions, provider selection, and thinking/generation feedback.
+- Provider selection and thinking/generation feedback.
 - ChatGPT and Claude selections return demo replies; Gemini is the only connected AI provider.
 
 Messages are stored in browser memory only. Each request sends the latest prompt, not conversation history. User messages remain plain text; assistant replies support GitHub Flavored Markdown and syntax-highlighted code blocks, with light/dark styles. Raw HTML is skipped. The Markdown renderer is loaded on demand when an assistant reply appears.
@@ -50,6 +51,10 @@ To try cancellation, ask for a long answer and click the square **Stop generatio
 | `pnpm lint` | Run ESLint. |
 | `pnpm exec tsc -b` | Check the frontend and Vite configuration; excludes `server/`. |
 | `pnpm build` | Run those TypeScript checks and generate the frontend build in `dist/`. |
+| `pnpm build:api` | Typecheck and compile the backend into `server-dist/`. |
+| `pnpm build:all` | Build both the frontend and backend. |
+| `pnpm check:api` | Typecheck the backend without emitting files. |
+| `pnpm start` | Run the compiled backend; set `NODE_ENV=production` to also serve the frontend. |
 | `pnpm preview` | Preview the frontend production build locally. |
 
 No test runner is configured yet.
@@ -57,7 +62,7 @@ No test runner is configured yet.
 To typecheck the backend separately:
 
 ```bash
-pnpm exec tsc --ignoreConfig --noEmit --module esnext --moduleResolution bundler --target es2023 --types node --skipLibCheck --strict server/app.ts server/services/ai.ts server/index.ts
+pnpm check:api
 ```
 
 The latest checks passed for the build, backend typecheck, and linting of the chat integration files. Full-project lint still reports errors in `src/components/ui/sidebar.tsx` (mixed component/helper exports) and `src/hooks/use-mobile.ts` (state update inside an effect).
@@ -72,11 +77,12 @@ The latest checks passed for the build, backend typecheck, and linting of the ch
 {
   "prompt": "Explain HTTP streaming in two sentences.",
   "provider": "Gemini",
-  "stream": true
+  "stream": true,
+  "googleSearch": false
 }
 ```
 
-`prompt` must be a non-empty string. Supported providers are `Gemini`, `ChatGPT`, and `Claude`.
+Send the body with `Content-Type: application/json`. Zod validates requests through Hono's `@hono/zod-validator` middleware: `prompt` is trimmed and must be a non-empty string, `provider` must be `Gemini`, `ChatGPT`, or `Claude`, and optional `stream` and `googleSearch` flags must be booleans. Google Search can only be enabled for Gemini. Validated data is used directly by the route. Invalid fields and malformed JSON return **400** with an `error` string.
 
 For Gemini with `stream: true`, the response uses `application/x-ndjson`: each line is a JSON event. Text events contain incremental chunks, not the full accumulated answer:
 
@@ -94,6 +100,35 @@ A provider failure after streaming starts produces a terminal error event instea
 
 Without `stream: true`, Gemini returns a JSON object with a `text` field. ChatGPT and Claude always return that JSON shape with a demo response. The browser client supports both formats.
 
+### Google Search grounding
+
+Select **Gemini**, then enable **Google Search** below the composer. Ask a question that benefits from current web information. The server enables the SDK's `tools: [{ googleSearch: {} }]` configuration; Gemini decides whether to search. Grounding is off by default, and no search tool is sent for normal requests.
+
+When Google provides grounding metadata, source links appear below the completed answer. Google's returned Search Suggestions HTML is shown in an isolated sandboxed iframe without script execution or access to the app's document. Assistant Markdown continues to skip raw HTML.
+
+Grounded JSON responses include an optional `grounding` field:
+
+```json
+{
+  "text": "An answer based on search results.",
+  "grounding": {
+    "sources": [{ "uri": "https://example.com", "title": "Example source" }],
+    "searchEntryPoint": "Google-provided Search Suggestions HTML, when present"
+  }
+}
+```
+
+Grounded streams send an optional `grounding` event after text chunks and before `done`:
+
+```jsonl
+{"type":"grounding","grounding":{"sources":[{"uri":"https://example.com","title":"Example source"}]}}
+{"type":"done"}
+```
+
+Metadata arriving in a final SDK chunk without text is preserved. Source URLs are limited to HTTP/HTTPS and deduplicated. If Gemini does not search or returns no grounding metadata, the reply has no source panel.
+
+Google Search availability and usage charges depend on your model and project billing tier; see [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing). Access failures show an error rather than silently switching to an ungrounded answer.
+
 Before streaming starts, invalid requests return **400** and a missing Gemini key returns **503**. Non-streaming Gemini failures return **429** for quota/rate limits or **502** for other failures. Error responses contain an `error` field; errors during a stream are delivered as events under the already-started HTTP **200** response.
 
 The service uses `gemini-3.5-flash` with a 30-second SDK request timeout. Stop generation aborts the browser request and propagates cancellation to the SDK. Cancellation does not guarantee that provider-side work or billing stops immediately.
@@ -109,6 +144,8 @@ curl --no-buffer http://localhost:3000/api/chat \
 ```
 
 Expect `delta` events followed by `done`. Omit `stream` to receive a single JSON response. In the browser, inspect `/api/chat` under Developer Tools → Network to confirm the request and response.
+
+For a grounded request, add `"googleSearch": true` and use a prompt such as “Search for the official Node.js release schedule and summarize it.”
 
 ## Styling and themes
 
@@ -165,11 +202,55 @@ src/
   index.css                # Tailwind imports, themes, and global styles
   main.tsx                 # React entrypoint
 components.json            # shadcn/ui configuration
+Dockerfile                 # Multi-stage Node 24 production image
+compose.yaml               # One app service for the existing reverse proxy
+.dockerignore              # Excludes credentials and local/generated files
+tsconfig.server.json       # Backend typechecking and Node ESM output
 vite.config.ts             # Plugins, import alias, and development API proxy
 ```
 
-## Deployment boundaries
+## Docker deployment with your existing Nginx proxy
 
-The build produces frontend assets only. `pnpm preview` does not start the API or configure an API proxy. Production hosting needs a separately running backend and routing for `/api` on the frontend origin, with streaming preserved through any reverse proxy.
+One container serves the built frontend and API on port **3000**. There is no Nginx service in this project's Compose file; point your existing proxy at the app's HTTP endpoint and forward both `/` and `/api` without stripping their paths.
+
+Keep `GEMINI_API_KEY` in the root `.env` on the deployment host. Docker Compose injects it into the container at runtime; `.dockerignore` excludes `.env` and `.env.*` from the image build. `.env.example` lists the available environment settings without credentials.
+
+Build and start:
+
+```bash
+docker compose up -d --build
+```
+
+The default published endpoint is `http://127.0.0.1:3000`, suitable for Nginx running directly on the same Docker host. Check the container using:
+
+```bash
+docker compose ps
+```
+
+If your proxy runs on another machine in your LAN, set these optional values in `.env` (replace the example address with the Docker host's actual LAN address):
+
+```dotenv
+APP_BIND_ADDRESS=192.168.1.50
+APP_PORT=3000
+```
+
+Then recreate the container and set your proxy's upstream to `http://192.168.1.50:3000`. If your proxy is another Docker container, attach both services to its existing shared Docker network and use the app's network hostname on port 3000; `127.0.0.1` inside the proxy container refers to the proxy itself.
+
+For Gemini streaming, disable response buffering for `/api/chat` in the existing proxy and allow a read timeout longer than the SDK's 30 seconds (for example, 60 seconds). Your proxy can handle TLS as it already does for other services.
+
+The image runs as the non-root `node` user with production dependencies. Compose uses a read-only filesystem, a writable `/tmp`, dropped Linux capabilities, and a healthcheck at `/api/health`. Credentials are not needed at build time. After changing the key in `.env`, apply it with:
+
+```bash
+docker compose up -d --force-recreate
+```
+
+For a local production check without Docker:
+
+```bash
+pnpm build:all
+NODE_ENV=production pnpm start
+```
+
+`pnpm build` still builds only the frontend, and `pnpm preview` still has no API proxy. Production static serving is enabled by `NODE_ENV=production`; unknown API routes and missing `/assets/` files return 404 rather than the SPA HTML.
 
 SQLite is installed but is not used yet; there is no persisted conversation storage.
