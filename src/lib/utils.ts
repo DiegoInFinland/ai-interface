@@ -1,1 +1,4 @@
-export { cn } from "cn"
+/**
+ * Utility functions for the application.
+ */
+export { cn } from "cn";

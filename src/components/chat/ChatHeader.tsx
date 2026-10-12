@@ -9,7 +9,19 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
   return (
     <header className="flex items-center justify-between gap-[16px] px-[36px] py-[12px] max-[600px]:px-[20px] max-[600px]:py-[10px]">
       <a
-        className="inline-flex items-center gap-[10px] rounded-[4px] text-[15px] font-[650] tracking-[-0.4px] text-strong no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        className="
+        inline-flex 
+        items-center 
+        gap-[10px] 
+        rounded-[4px] 
+        text-[15px] 
+        font-[650] 
+        tracking-[-0.4px] 
+        text-strong 
+        no-underline 
+        focus-visible:outline-2 
+        focus-visible:outline-offset-4 
+        focus-visible:outline-accent"
         href="./"
         aria-label="AI Interface home"
       >

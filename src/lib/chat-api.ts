@@ -1,5 +1,11 @@
+/**
+ * Chat API utility functions for the application.
+ */
 export type GroundingData = {
-  sources: { uri: string; title: string }[];
+  sources: {
+    uri: string;
+    title: string;
+  }[];
   searchEntryPoint?: string;
 };
 
@@ -9,13 +15,23 @@ type ChatResponse = {
 };
 
 function parseGrounding(value: unknown): GroundingData {
-  if (typeof value !== "object" || value === null || !("sources" in value) || !Array.isArray(value.sources)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("sources" in value) ||
+    !Array.isArray(value.sources)
+  ) {
     throw new Error("The chat API returned invalid grounding metadata.");
   }
   const sources = value.sources.map((source: unknown) => {
-    if (typeof source !== "object" || source === null ||
-      !("uri" in source) || typeof source.uri !== "string" ||
-      !("title" in source) || typeof source.title !== "string") {
+    if (
+      typeof source !== "object" ||
+      source === null ||
+      !("uri" in source) ||
+      typeof source.uri !== "string" ||
+      !("title" in source) ||
+      typeof source.title !== "string"
+    ) {
       throw new Error("The chat API returned an invalid source.");
     }
     let url: URL;
@@ -29,13 +45,18 @@ function parseGrounding(value: unknown): GroundingData {
     }
     return { uri: source.uri, title: source.title };
   });
-  if ("searchEntryPoint" in value && typeof value.searchEntryPoint !== "string") {
+  if (
+    "searchEntryPoint" in value &&
+    typeof value.searchEntryPoint !== "string"
+  ) {
     throw new Error("The chat API returned invalid search suggestions.");
   }
   return {
     sources,
-    ...("searchEntryPoint" in value && typeof value.searchEntryPoint === "string"
-      ? { searchEntryPoint: value.searchEntryPoint } : {}),
+    ...("searchEntryPoint" in value &&
+    typeof value.searchEntryPoint === "string"
+      ? { searchEntryPoint: value.searchEntryPoint }
+      : {}),
   };
 }
 
@@ -48,28 +69,42 @@ async function sendMessage(
   provider: string,
   signal?: AbortSignal,
   onChunk?: (text: string) => void,
-  options?: { googleSearch?: boolean; onGrounding?: (grounding: GroundingData) => void },
+  options?: {
+    googleSearch?: boolean;
+    onGrounding?: (grounding: GroundingData) => void;
+  },
 ): Promise<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, provider, stream: Boolean(onChunk), googleSearch: options?.googleSearch ?? false }),
+    body: JSON.stringify({
+      prompt,
+      provider,
+      stream: Boolean(onChunk),
+      googleSearch: options?.googleSearch ?? false,
+    }),
     signal,
   });
 
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
     if (
-      typeof body === "object" && body !== null &&
-      "error" in body && typeof body.error === "string" && body.error.trim()
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof body.error === "string" &&
+      body.error.trim()
     ) {
       throw new Error(body.error);
     }
-    throw new Error(`Chat request failed (${response.status}). Please try again.`);
+    throw new Error(
+      `Chat request failed (${response.status}). Please try again.`,
+    );
   }
 
   if (response.headers.get("Content-Type")?.includes("application/x-ndjson")) {
-    if (!response.body) throw new Error("The chat API returned an empty stream.");
+    if (!response.body)
+      throw new Error("The chat API returned an empty stream.");
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
@@ -78,15 +113,28 @@ async function sendMessage(
     const consume = (line: string) => {
       if (!line.trim()) return;
       const event: unknown = JSON.parse(line);
-      if (typeof event !== "object" || event === null || !("type" in event) || done) {
+      if (
+        typeof event !== "object" ||
+        event === null ||
+        !("type" in event) ||
+        done
+      ) {
         throw new Error("The chat API returned an invalid stream.");
       }
-      if (event.type === "error" && "error" in event && typeof event.error === "string") {
+      if (
+        event.type === "error" &&
+        "error" in event &&
+        typeof event.error === "string"
+      ) {
         throw new Error(event.error);
       }
       if (event.type === "done") {
         done = true;
-      } else if (event.type === "delta" && "text" in event && typeof event.text === "string") {
+      } else if (
+        event.type === "delta" &&
+        "text" in event &&
+        typeof event.text === "string"
+      ) {
         text += event.text;
         onChunk?.(event.text);
       } else if (event.type === "grounding" && "grounding" in event) {
@@ -110,7 +158,10 @@ async function sendMessage(
           break;
         }
       }
-      if (!done || !text.trim()) throw new Error("The chat response ended before it was complete. Please try again.");
+      if (!done || !text.trim())
+        throw new Error(
+          "The chat response ended before it was complete. Please try again.",
+        );
       return text;
     } finally {
       await reader.cancel().catch(() => undefined);
@@ -120,10 +171,15 @@ async function sendMessage(
 
   const body: unknown = await response.json();
   if (
-    typeof body !== "object" || body === null ||
-    !("text" in body) || typeof body.text !== "string" || !body.text.trim()
+    typeof body !== "object" ||
+    body === null ||
+    !("text" in body) ||
+    typeof body.text !== "string" ||
+    !body.text.trim()
   ) {
-    throw new Error("The chat API returned an invalid response. Please try again.");
+    throw new Error(
+      "The chat API returned an invalid response. Please try again.",
+    );
   }
 
   if ("grounding" in body) {
