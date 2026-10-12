@@ -1,9 +1,7 @@
-FROM node:24-bookworm-slim AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ \
-    && rm -rf /var/lib/apt/lists/* \
+RUN apk add --no-cache python3 make g++ \
     && npm install --global pnpm@12.11.2
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -12,7 +10,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build:all && pnpm prune --prod
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24-alpine AS runtime
+RUN apk add --no-cache libstdc++
 WORKDIR /app
 ENV NODE_ENV=production
 

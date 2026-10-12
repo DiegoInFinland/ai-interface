@@ -202,7 +202,7 @@ src/
   index.css                # Tailwind imports, themes, and global styles
   main.tsx                 # React entrypoint
 components.json            # shadcn/ui configuration
-Dockerfile                 # Multi-stage Node 24 production image
+Dockerfile                 # Multi-stage Node 24 Alpine production image
 compose.yaml               # One app service for the existing reverse proxy
 .dockerignore              # Excludes credentials and local/generated files
 tsconfig.server.json       # Backend typechecking and Node ESM output
@@ -238,7 +238,7 @@ Then recreate the container and set your proxy's upstream to `http://192.168.1.5
 
 For Gemini streaming, disable response buffering for `/api/chat` in the existing proxy and allow a read timeout longer than the SDK's 30 seconds (for example, 60 seconds). Your proxy can handle TLS as it already does for other services.
 
-The image runs as the non-root `node` user with production dependencies. Compose uses a read-only filesystem, a writable `/tmp`, dropped Linux capabilities, and a healthcheck at `/api/health`. Credentials are not needed at build time. After changing the key in `.env`, apply it with:
+Both image stages use `node:24-alpine` so native dependencies are built and run against the same musl-based environment. The build stage installs Python, Make, and G++ with `apk`; the runtime includes `libstdc++` for native modules. The image runs as the non-root `node` user with production dependencies. Compose uses a read-only filesystem, a writable `/tmp`, dropped Linux capabilities, and a healthcheck at `/api/health`. Credentials are not needed at build time. After changing the key in `.env`, apply it with:
 
 ```bash
 docker compose up -d --force-recreate

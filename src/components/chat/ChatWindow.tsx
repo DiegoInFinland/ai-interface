@@ -44,7 +44,22 @@ const ChatWindow = ({ messages, isSending }: ChatWindowProps) => {
   return (
     <div
       ref={containerRef}
-      className="mb-[24px] min-h-0 flex-1 overflow-y-auto rounded-[4px] pt-[4px] pr-[12px] pb-[4px] pl-[4px] [overflow-anchor:none] [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent [&::-webkit-scrollbar]:hidden"
+      className="
+      mb-[24px] 
+      min-h-0 
+      flex-1 
+      overflow-y-auto 
+      rounded-[4px] 
+      pt-[4px] 
+      pr-[12px] 
+      pb-[4px] 
+      pl-[4px] 
+      [overflow-anchor:none] 
+      [scrollbar-width:none] 
+      focus-visible:outline-2 
+      focus-visible:outline-offset-4 
+      focus-visible:outline-accent 
+      [&::-webkit-scrollbar]:hidden"
       onScroll={handleScroll}
       role="region"
       aria-label="Chat messages"

@@ -6,7 +6,7 @@
 - Verify with `pnpm lint` and `pnpm build`; build runs `tsc -b` before Vite. For typechecking alone use `pnpm exec tsc -b`; for focused linting use `pnpm exec eslint src/path/to/file.tsx`.
 - No test runner or test script is configured.
 - Backend typecheck: `pnpm check:api`, using `tsconfig.server.json`. `pnpm build:api` emits Node ESM files in `server-dist/`; use `.js` extensions for relative backend imports so the compiled files run under Node. `pnpm build:all` builds frontend and backend; `NODE_ENV=production pnpm start` runs both from one Node process.
-- Docker: `docker compose up -d --build` starts one app container on port 3000 behind the user's existing Nginx proxy. Do not add another proxy service. Compose defaults to binding `127.0.0.1`; `APP_BIND_ADDRESS` and `APP_PORT` configure the published endpoint. The package manager is pinned to pnpm 12.11.2; the image uses Node 24.
+- Docker: `docker compose up -d --build` starts one app container on port 3000 behind the user's existing Nginx proxy. Do not add another proxy service. Compose defaults to binding `127.0.0.1`; `APP_BIND_ADDRESS` and `APP_PORT` configure the published endpoint. The package manager is pinned to pnpm 12.11.2. Both image stages use `node:24-alpine`; install build tools with `apk` and keep runtime `libstdc++` for native dependencies. Keep build/runtime libc environments consistent, and verify `better-sqlite3` when changing the base image.
 - Known full-project lint failures: `src/components/ui/sidebar.tsx` violates `react-refresh/only-export-components`; `src/hooks/use-mobile.ts` violates `react-hooks/set-state-in-effect`. Run focused lint on changed files and report these separately when still present.
 
 ## Chat architecture and contracts
