@@ -34,25 +34,41 @@ export function Conversation({ messages, isSending }: ConversationProps) {
                 : "text-strong"
             }
           >
-            <span className={message.role === "user"
-              ? "text-[11px] font-semibold text-foreground"
-              : "flex items-center gap-[8px] text-[12px] font-semibold text-foreground"}>
+            <span
+              className={
+                message.role === "user"
+                  ? "text-[11px] font-semibold text-foreground"
+                  : "flex items-center gap-[8px] text-[12px] font-semibold text-foreground"
+              }
+            >
               {message.role === "user" ? (
                 "You"
               ) : (
                 <>
-                  <Sparkles className="text-accent" size={16} aria-hidden="true" />
+                  <Sparkles
+                    className="text-accent"
+                    size={16}
+                    aria-hidden="true"
+                  />
                   {message.provider}
                   {message.provider !== "Gemini" && " · Demo"}
                 </>
               )}
             </span>
             {message.role === "assistant" ? (
-              <Suspense fallback={<p className="mt-[12px] text-[15px] leading-[1.7] whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>}>
+              <Suspense
+                fallback={
+                  <p className="mt-[12px] text-[15px] leading-[1.7] whitespace-pre-wrap [overflow-wrap:anywhere]">
+                    {message.text}
+                  </p>
+                }
+              >
                 <MarkdownMessage text={message.text} />
               </Suspense>
             ) : (
-              <p className="mt-[4px] text-[15px] whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>
+              <p className="mt-[4px] text-[15px] whitespace-pre-wrap [overflow-wrap:anywhere]">
+                {message.text}
+              </p>
             )}
             {message.role === "assistant" && message.grounding && (
               <GroundingSources grounding={message.grounding} />

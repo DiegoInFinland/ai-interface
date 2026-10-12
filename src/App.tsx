@@ -162,15 +162,13 @@ function App() {
         ) : (
           <ChatWindow messages={messages} isSending={isSending} />
         )}
-
+        {/* Error message section, no border designed */}
         {error && (
           <p
             className="
             mb-[16px] 
             shrink-0 
             rounded-[12px] 
-            border 
-            border-destructive 
             px-[16px] 
             py-[12px] 
             text-[13px] 

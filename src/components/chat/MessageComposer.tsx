@@ -15,7 +15,7 @@ type MessageComposerProps = {
   inputRef: Ref<HTMLTextAreaElement>;
   isSending: boolean;
 };
-
+// MessageComposer component for composing and sending chat messages
 export function MessageComposer({
   text,
   onTextChange,
@@ -30,6 +30,7 @@ export function MessageComposer({
 }: MessageComposerProps) {
   return (
     <div className="mx-auto w-full max-w-[910px] shrink-0">
+      {/* Message composer form for inputting and sending messages */}
       <form
         className="flex 
         items-center gap-[8px] 
@@ -37,11 +38,12 @@ export function MessageComposer({
         border border-border 
         bg-background 
         p-[6px] 
-        shadow-[0_4px_24px_color-mix(in_srgb,var(--text-h)_4%,transparent)] 
+        shadow-[0_4px_24px_color-mix(in_srgb,var(--text-h)_10%,transparent)] 
         transition-[border-color,box-shadow] 
         duration-150 
-        focus-within:border-accent-border 
-        focus-within:shadow-[0_0_0_3px_var(--accent-bg)]"
+        focus-within:border-neutral-700
+        focus-within:shadow-[0_0_0_3px_rgba(255,255,255,0.03)]
+        "
         onSubmit={(event) => {
           event.preventDefault();
           if (!isSending) onSend();
@@ -54,12 +56,7 @@ export function MessageComposer({
           ref={inputRef}
           id="message"
           name="message"
-          className="
-          min-h-[calc(1lh+16px)] 
-          max-h-[260px]
-          min-w-0
-          max-w-full 
-          flex-1 
+          className="min-h-[calc(1lh+16px)] max-h-[260px] min-w-0 max-w-full flex-1 
           resize-none 
           rounded-full 
           border-0 
@@ -74,8 +71,10 @@ export function MessageComposer({
           focus-visible:shadow-none 
           focus-visible:ring-0 
           md:text-[16px] 
-          dark:bg-transparent"
-          placeholder="Message…"
+          dark:bg-transparent
+          focus:placeholder-transparent
+          "
+          placeholder="Your message…"
           value={text}
           rows={1}
           onChange={(event) => onTextChange(event.target.value)}
@@ -117,13 +116,13 @@ export function MessageComposer({
               text-inherit 
               focus-visible:outline-2 
               focus-visible:outline-offset-4 
-              focus-visible:outline-accent"
+              focus-visible:outline-transparent"
               value={provider}
               disabled={isSending}
               onChange={(event) => onProviderChange(event.target.value)}
             >
-              <option>ChatGPT</option>
               <option>Gemini</option>
+              <option>ChatGPT</option>
               <option>Claude</option>
             </select>
             <ChevronDown
@@ -149,15 +148,18 @@ export function MessageComposer({
           </Button>
         </div>
       </form>
+      {/* Composer hint and additional options for the message composer */}
       <div className="mt-[12px] flex flex-wrap items-center justify-center gap-x-[16px] gap-y-[8px]">
         {provider === "Gemini" && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className={googleSearch
-              ? "h-[28px] rounded-full border-accent-border bg-accent-soft px-[10px] text-[11px] text-strong"
-              : "h-[28px] rounded-full px-[10px] text-[11px] text-foreground"}
+            className={
+              googleSearch
+                ? "h-[28px] rounded-full border-accent-border bg-accent-soft px-[10px] text-[11px] text-strong"
+                : "h-[28px] rounded-full px-[10px] text-[11px] text-foreground"
+            }
             aria-pressed={googleSearch}
             disabled={isSending}
             onClick={() => onGoogleSearchChange(!googleSearch)}
@@ -166,19 +168,16 @@ export function MessageComposer({
             <Globe size={13} aria-hidden="true" /> Google Search
           </Button>
         )}
-      <p className="text-center text-[11px]" id="composer-hint">
-        {isSending ? (
-          "Generating a reply · Stop anytime"
-        ) : (
-          <>
-            Enter to send{" "}
-            <span className="mx-[6px]" aria-hidden="true">
-              ·
-            </span>{" "}
-            Shift + Enter for a new line
-          </>
-        )}
-      </p>
+        <p className="text-center text-[11px]" id="composer-hint">
+          {isSending ? (
+            "Generating a reply · Stop anytime"
+          ) : (
+            <>
+              Self hosted AI-interface. Diego(c) Under
+              <a href="https://opensource.org"> MIT</a> License
+            </>
+          )}
+        </p>
       </div>
     </div>
   );

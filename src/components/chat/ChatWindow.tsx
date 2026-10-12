@@ -28,6 +28,7 @@ const ChatWindow = ({ messages, isSending }: ChatWindowProps) => {
     }
   }, [messages, isSending]);
 
+  // Observe changes in the container and content size to maintain scroll position.
   // Lazy-loaded Markdown and viewport resizing can change height without new text.
   useEffect(() => {
     const container = containerRef.current;
