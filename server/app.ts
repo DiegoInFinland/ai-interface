@@ -6,7 +6,7 @@ import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { stream } from "hono/streaming";
 import * as z from "zod";
-import { sendMessage, streamMessage } from "./services/ai.js";
+import { sendMessage, streamMessage } from "./services/gemini.js";
 
 const chatSchema = z
   .object({
@@ -44,9 +44,8 @@ function geminiError(error: unknown, googleSearch = false): string {
     ? "Gemini quota or rate limit reached. Please try again later."
     : "Gemini could not generate a reply. Please try again.";
 }
-
+// Initialize the Hono application instance.
 const app = new Hono();
-
 app.onError((error, c) => {
   if (error instanceof HTTPException && error.status === 400) {
     return c.json({ error: "Request body must be valid JSON." }, 400);
@@ -56,11 +55,11 @@ app.onError((error, c) => {
     500,
   );
 });
-
+// Health check endpoint.
 app.get("/api/health", (c) => {
   return c.text("ok");
 });
-
+// Chat endpoint.
 app.post("/api/chat", validateChat, async (c) => {
   const body = c.req.valid("json");
 

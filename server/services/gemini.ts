@@ -1,3 +1,7 @@
+/**
+ * AI service functions for interacting with the Gemini API.
+ */
+
 import { GoogleGenAI, type GroundingMetadata } from "@google/genai";
 
 type GroundingData = {
@@ -9,7 +13,9 @@ type ChatStreamEvent =
   | { type: "delta"; text: string }
   | { type: "grounding"; grounding: GroundingData };
 
-function extractGrounding(metadata?: GroundingMetadata): GroundingData | undefined {
+function extractGrounding(
+  metadata?: GroundingMetadata,
+): GroundingData | undefined {
   if (!metadata) return;
   const sources = new Map<string, { uri: string; title: string }>();
   for (const chunk of metadata.groundingChunks ?? []) {
@@ -27,7 +33,10 @@ function extractGrounding(metadata?: GroundingMetadata): GroundingData | undefin
   }
   const searchEntryPoint = metadata.searchEntryPoint?.renderedContent;
   if (!sources.size && !searchEntryPoint) return;
-  return { sources: [...sources.values()], ...(searchEntryPoint ? { searchEntryPoint } : {}) };
+  return {
+    sources: [...sources.values()],
+    ...(searchEntryPoint ? { searchEntryPoint } : {}),
+  };
 }
 
 function createClient() {
@@ -42,7 +51,10 @@ function createClient() {
   });
 }
 
-async function sendMessage(prompt: string, googleSearch = false): Promise<{ text: string; grounding?: GroundingData }> {
+async function sendMessage(
+  prompt: string,
+  googleSearch = false,
+): Promise<{ text: string; grounding?: GroundingData }> {
   const ai = createClient();
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash",
@@ -54,13 +66,19 @@ async function sendMessage(prompt: string, googleSearch = false): Promise<{ text
   if (!text?.trim()) {
     throw new Error("Gemini returned no text response.");
   }
-  const grounding = extractGrounding(response.candidates?.[0]?.groundingMetadata);
+  const grounding = extractGrounding(
+    response.candidates?.[0]?.groundingMetadata,
+  );
   return { text, ...(grounding ? { grounding } : {}) };
 }
 
 export { sendMessage };
 
-export async function* streamMessage(prompt: string, signal: AbortSignal, googleSearch = false): AsyncGenerator<ChatStreamEvent> {
+export async function* streamMessage(
+  prompt: string,
+  signal: AbortSignal,
+  googleSearch = false,
+): AsyncGenerator<ChatStreamEvent> {
   const ai = createClient();
   const response = await ai.models.generateContentStream({
     model: "gemini-3.5-flash",
@@ -80,7 +98,9 @@ export async function* streamMessage(prompt: string, signal: AbortSignal, google
       if (text.trim()) hasText = true;
       yield { type: "delta", text };
     }
-    const grounding = extractGrounding(chunk.candidates?.[0]?.groundingMetadata);
+    const grounding = extractGrounding(
+      chunk.candidates?.[0]?.groundingMetadata,
+    );
     if (grounding) {
       for (const source of grounding.sources) sources.set(source.uri, source);
       searchEntryPoint = grounding.searchEntryPoint ?? searchEntryPoint;
@@ -92,7 +112,10 @@ export async function* streamMessage(prompt: string, signal: AbortSignal, google
   if (!signal.aborted && (sources.size || searchEntryPoint)) {
     yield {
       type: "grounding",
-      grounding: { sources: [...sources.values()], ...(searchEntryPoint ? { searchEntryPoint } : {}) },
+      grounding: {
+        sources: [...sources.values()],
+        ...(searchEntryPoint ? { searchEntryPoint } : {}),
+      },
     };
   }
 }

@@ -138,12 +138,17 @@ function App() {
   return (
     <div
       className={cn(
-        "flex flex-col text-[14px] leading-normal [&>header]:shrink-0 motion-reduce:[&_*]:transition-none motion-reduce:[&_*::before]:transition-none motion-reduce:[&_*::after]:transition-none",
+        `flex 
+        flex-col 
+        text-[14px] 
+        leading-normal 
+        [&>header]:shrink-0 
+        motion-reduce:[&_*]:transition-none motion-reduce:[&_*::before]:transition-none 
+        motion-reduce:[&_*::after]:transition-none`,
         messages.length ? "h-dvh overflow-hidden" : "min-h-svh",
       )}
     >
       <ChatHeader onNewChat={startNewChat} />
-
       <main
         className={cn(
           "mx-auto w-full max-w-[980px] px-[24px] max-[600px]:px-[20px]",
