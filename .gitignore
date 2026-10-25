@@ -12,6 +12,7 @@ dist
 dist-ssr
 server-dist
 *.local
+*.bak
 
 # Editor directories and files
 .vscode/*
@@ -28,4 +29,3 @@ server-dist
 .env
 .env.*
 !.env.example
-
