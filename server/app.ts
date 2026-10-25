@@ -1,3 +1,7 @@
+/*
+ * Server application for handling chat requests.
+ */
+
 import { Hono } from "hono";
 import { fileURLToPath } from "node:url";
 import { ApiError } from "@google/genai";
@@ -63,6 +67,7 @@ app.get("/api/health", (c) => {
 app.post("/api/chat", validateChat, async (c) => {
   const body = c.req.valid("json");
 
+  // Handle requests for the Gemini provider.
   if (body.provider === "Gemini") {
     if (!process.env.GEMINI_API_KEY?.trim()) {
       return c.json(

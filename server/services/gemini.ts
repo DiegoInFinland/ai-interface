@@ -74,7 +74,7 @@ async function sendMessage(
 
 export { sendMessage };
 
-export async function* streamMessage(
+async function* streamMessage(
   prompt: string,
   signal: AbortSignal,
   googleSearch = false,
@@ -119,3 +119,5 @@ export async function* streamMessage(
     };
   }
 }
+
+export { streamMessage };
