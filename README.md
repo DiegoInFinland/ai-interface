@@ -2,7 +2,7 @@
 
 A personal AI chat project for local development and use on my home network. It is **an ongoing, unfinished project** and is not intended for public exposure.
 
-Currently, only **Gemini** is implemented. ChatGPT and Claude integrations are planned for the future.
+**Note:** This project is currently in beta and under active development. At the moment, only **Gemini** is supported. Integrations with ChatGPT and Claude are planned for the future, but progress may be slow due to my limited availability.
 
 ## Environment
 
